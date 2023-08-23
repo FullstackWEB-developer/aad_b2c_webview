@@ -85,9 +85,8 @@ class ADB2CEmbedWebViewState extends State<ADB2CEmbedWebView> {
               isLoading = false;
             });
 
-            final Uri response = Uri.dataFromString(url);
             //Check that the user is past authentication and current URL is the redirect with the code.
-            onPageFinishedTasks(url, response);
+            onPageFinishedTasks(url);
           },
         ),
       )
@@ -177,14 +176,26 @@ class ADB2CEmbedWebViewState extends State<ADB2CEmbedWebView> {
   }
 
   /// Executes tasks when the page finishes loading.
-  dynamic onPageFinishedTasks(String url, Uri response) {
+  dynamic onPageFinishedTasks(String url) {
+    final Uri response = Uri.dataFromString(url);
+    final Uri uri = Uri.parse(url);
+    Map<String, String> parameters = Uri.splitQueryString(uri.fragment);
+
     if (response.path.contains(widget.redirectUrl)) {
       if (url.contains(Constants.idToken)) {
+        final token = Token(
+            type: TokenType.idToken,
+            value: parameters[Constants.idToken] ?? '');
+        widget.onIDToken(token);
         //Navigate to the redirect route screen; check for mounted component
         if (!mounted) return;
         //call redirect function
         onRedirect(context);
       } else if (url.contains(Constants.accessToken)) {
+        final token = Token(
+            type: TokenType.accessToken,
+            value: parameters[Constants.accessToken] ?? '');
+        widget.onAccessToken(token);
         //Navigate to the redirect route screen; check for mounted component
         if (!mounted) return;
         //call redirect function
